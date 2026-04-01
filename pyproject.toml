@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asbflow"
-version = "1.0.0"
+version = "1.0.1"
 description = "A high-level Azure Service Bus abstraction for publishing, consuming, and DLQ workflows."
 readme = "README.md"
 license = "MIT"
@@ -19,6 +19,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Distributed Computing",
 ]
