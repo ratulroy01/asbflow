@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asbflow"
+version = "1.0.0"
+description = "A high-level Azure Service Bus abstraction for publishing, consuming, and DLQ workflows."
+readme = "README.md"
+license = "MIT"
+authors = [{name = "Mattia Volpato", email = "volpato.mattia.2001@gmail.com"}]
+requires-python = ">=3.10"
+keywords = ["azure", "service-bus", "asb", "messaging", "dlq", "pydantic"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+
+dependencies = [
+    "azure-servicebus>=7.12.0",
+    "azure-identity>=1.16.0",
+    "pydantic>=2.0",
+    "overrides>=7.7.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-mock",
+    "black",
+    "isort",
+    "mypy",
+    "build>=1.2.2",
+    "twine>=5.1.1",
+    "pre-commit",
+]
+notebook = [
+    "jupyterlab>=4.2.0",
+    "ipykernel>=6.29.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/iFoxz17/asbflow"
+Repository = "https://github.com/iFoxz17/asbflow"
+Issues = "https://github.com/iFoxz17/asbflow/issues"
+Changelog = "https://github.com/iFoxz17/asbflow/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = {find = {where = ["src"]}}
+
+[tool.setuptools.package-data]
+"asbflow" = ["py.typed"]
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+src_paths = ["src", "test", "quickstart"]
