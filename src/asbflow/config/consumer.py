@@ -95,7 +95,7 @@ class ASBConsumerConfig:
             return value
 
         normalized: str = value.strip().lower().replace("-", "_").replace(" ", "_")
-        aliases = {
+        aliases: dict[str, ParseFailurePolicy] = {
             "dead_letter": ParseFailurePolicy.DEAD_LETTER,
             "deadletter": ParseFailurePolicy.DEAD_LETTER,
             "complete": ParseFailurePolicy.COMPLETE,

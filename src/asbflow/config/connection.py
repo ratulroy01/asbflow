@@ -14,8 +14,8 @@ class ASBAuthMethod(str, Enum):
         if isinstance(value, cls):
             return value
 
-        normalized = value.strip().lower().replace("-", "_").replace(" ", "_")
-        aliases = {
+        normalized: str = value.strip().lower().replace("-", "_").replace(" ", "_")
+        aliases: dict[str, ASBAuthMethod] = {
             "connection_string": cls.CONNECTION_STRING,
             "conn_str": cls.CONNECTION_STRING,
             "managed_identity": cls.MANAGED_IDENTITY,
@@ -79,7 +79,7 @@ class ASBConnectionConfig:
         if self.auth_method is not ASBAuthMethod.CONNECTION_STRING:
             raise ValueError("to_connection_string_client_kwargs can be used only with connection_string auth")
 
-        kwargs = self._base_client_kwargs()
+        kwargs: dict[str, Any] = self._base_client_kwargs()
         kwargs["conn_str"] = self.connection_string
         return kwargs
 
@@ -87,7 +87,7 @@ class ASBConnectionConfig:
         if self.auth_method is not ASBAuthMethod.MANAGED_IDENTITY:
             raise ValueError("to_managed_identity_client_kwargs can be used only with managed_identity auth")
 
-        kwargs = self._base_client_kwargs()
+        kwargs: dict[str, Any] = self._base_client_kwargs()
         kwargs["fully_qualified_namespace"] = self.fully_qualified_namespace
         kwargs["credential"] = credential
         return kwargs
