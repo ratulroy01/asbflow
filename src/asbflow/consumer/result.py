@@ -13,7 +13,7 @@ class ConsumedPayloadFailure:
     Parameters
     ----------
     error : Exception
-        Error raised while decoding, parsing, or settling the message.
+        Error raised while decoding, parsing or settling the message.
     message_body : str | None, default=None
         Raw message body, when available.
     """

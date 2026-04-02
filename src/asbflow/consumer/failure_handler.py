@@ -67,15 +67,17 @@ class ConsumeFailureHandler:
         policy: ParseFailurePolicy,
     ) -> None:
         try:
-            if policy is ParseFailurePolicy.LEAVE_UNSETTLED:
-                return
-            if policy is ParseFailurePolicy.COMPLETE:
-                receiver.complete_message(raw_message)
-                return
-            if policy is ParseFailurePolicy.ABANDON:
-                receiver.abandon_message(raw_message)
-                return
-            receiver.dead_letter_message(raw_message)
+            match policy:
+                case ParseFailurePolicy.LEAVE_UNSETTLED:
+                    return
+                case ParseFailurePolicy.COMPLETE:
+                    receiver.complete_message(raw_message)
+                case ParseFailurePolicy.ABANDON:
+                    receiver.abandon_message(raw_message)
+                case ParseFailurePolicy.DEAD_LETTER:
+                    receiver.dead_letter_message(raw_message)
+                case _:
+                    raise ValueError(f"Unknown policy: {policy}")
         except Exception:
             LOGGER.exception(
                 "Failed to settle malformed message",
@@ -90,15 +92,17 @@ class ConsumeFailureHandler:
         policy: ParseFailurePolicy,
     ) -> None:
         try:
-            if policy is ParseFailurePolicy.LEAVE_UNSETTLED:
-                return
-            if policy is ParseFailurePolicy.COMPLETE:
-                await receiver.complete_message(raw_message)
-                return
-            if policy is ParseFailurePolicy.ABANDON:
-                await receiver.abandon_message(raw_message)
-                return
-            await receiver.dead_letter_message(raw_message)
+            match policy:
+                case ParseFailurePolicy.LEAVE_UNSETTLED:
+                    return
+                case ParseFailurePolicy.COMPLETE:
+                    await receiver.complete_message(raw_message)
+                case ParseFailurePolicy.ABANDON:
+                    await receiver.abandon_message(raw_message)
+                case ParseFailurePolicy.DEAD_LETTER:
+                    await receiver.dead_letter_message(raw_message)
+                case _:
+                    raise ValueError(f"Unknown policy: {policy}")
         except Exception:
             LOGGER.exception(
                 "Failed to settle malformed message (async)",

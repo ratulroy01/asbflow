@@ -45,8 +45,8 @@ class ServiceBusPayloadOperations:
             return []
 
         batches: list[object] = []
-        current_batch = sender.create_message_batch()
-        current_count = 0
+        current_batch: Any = sender.create_message_batch()
+        current_count: int = 0
 
         for message in messages:
             if chunk_size is not None and current_count >= chunk_size:
