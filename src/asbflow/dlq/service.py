@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from asbflow.config import (
     DEFAULT_CHUNK_SIZE,
@@ -22,6 +22,7 @@ from asbflow.dlq.result import (
 from asbflow.exceptions import DLQError, DLQPublisherNotConfiguredError
 from asbflow.publisher import ASBPublisher
 from asbflow.shared.payloads import PublishablePayload
+from asbflow.shared.resolution import PropertyResolver
 
 LOGGER = get_asbflow_logger(__name__)
 
@@ -46,7 +47,7 @@ class ASBDLQManager:
         raise_on_error : bool
             Default raise policy for DLQ operations.
         """
-        self._raise_on_error: bool = raise_on_error
+        self._raise_on_error_resolver: PropertyResolver[bool] = PropertyResolver(raise_on_error)
         self._consumer: ASBConsumer | _ConsumerLike = consumer
         self._publisher: ASBPublisher | _PublisherLike | None = publisher
 
@@ -71,10 +72,7 @@ class ASBDLQManager:
     @property
     def raise_on_error(self) -> bool:
         """Return the default raise-on-error policy."""
-        return self._raise_on_error
-
-    def _resolve_raise_on_error(self, override: bool | None) -> bool:
-        return self._raise_on_error if override is None else override
+        return self._raise_on_error_resolver.default
 
     def consume(
         self,
@@ -107,7 +105,7 @@ class ASBDLQManager:
         DLQError
             If message-level failures are collected and raise policy is enabled.
         """
-        resolved_raise_on_error: bool = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error: bool = self._raise_on_error_resolver.resolve(raise_on_error)
         consumed: ConsumeResult = self._consumer.consume(
             max_message_count=max_message_count,
             parse=parse,
@@ -215,7 +213,7 @@ class ASBDLQManager:
         DLQError
             If the redrive operation completes with failures and raise policy is enabled.
         """
-        resolved_raise_on_error = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error = self._raise_on_error_resolver.resolve(raise_on_error)
         if self._publisher is None:
             raise DLQPublisherNotConfiguredError(
                 "redrive requires a configured publisher. "
@@ -293,7 +291,7 @@ class ASBDLQManager:
         DLQError
             If purge operation completes with failures and raise policy is enabled.
         """
-        resolved_raise_on_error = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error = self._raise_on_error_resolver.resolve(raise_on_error)
         consumed: ConsumeResult = self._consumer.consume(
             max_message_count=max_message_count,
             parse=False,

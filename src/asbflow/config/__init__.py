@@ -1,4 +1,4 @@
-﻿from asbflow.config.connection import ASBAuthMethod, ASBConnectionConfig
+from asbflow.config.connection import ASBAuthMethod, ASBConnectionConfig
 from asbflow.config.consumer import ASBConsumerConfig, ParseFailurePolicy
 from asbflow.config.defaults import (
     ASBFLOW_LOGGER_NAME,
@@ -15,7 +15,12 @@ from asbflow.config.defaults import (
     get_asbflow_logger,
 )
 from asbflow.config.entity import ASBMessagingEntity
-from asbflow.config.publisher import ASBMessageConfig, ASBPublisherConfig
+from asbflow.config.message import (
+    ASBDynamicMessageConfig,
+    ASBMessageConfig,
+    MessageFieldMapping,
+)
+from asbflow.config.publisher import ASBPublisherConfig
 
 __all__ = [
     "ASBConnectionConfig",
@@ -25,6 +30,8 @@ __all__ = [
     "ASBMessagingEntity",
     "ParseFailurePolicy",
     "ASBMessageConfig",
+    "ASBDynamicMessageConfig",
+    "MessageFieldMapping",
     "DEFAULT_MAX_MESSAGE_COUNT",
     "DEFAULT_DLQ_READ_MAX_MESSAGE_COUNT",
     "DEFAULT_DLQ_PURGE_MAX_MESSAGE_COUNT",

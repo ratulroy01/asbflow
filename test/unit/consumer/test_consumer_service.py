@@ -642,3 +642,44 @@ def test_service_consume_uses_queue_receiver_when_configured(
     assert factory.client.receiver_method == "queue"
     assert factory.client.receiver_kwargs is not None
     assert factory.client.receiver_kwargs["queue_name"] == "queue-a"
+
+
+def test_service_aconsume_uses_async_strategy_aconsume_directly(
+    patch_async_consumer_sdk,
+    valid_payload_json,
+    connection_config,
+    consumer_config,
+    alert_message_parser,
+    monkeypatch,
+):
+    patch_async_consumer_sdk([[valid_payload_json.encode("utf-8")]])
+    consumer = ASBConsumer(
+        connection=connection_config,
+        consumer=consumer_config,
+        execution_mode="async",
+        parser=alert_message_parser,
+    )
+
+    async def _fake_aconsume(
+        max_message_count: int = 10,
+        *,
+        parse: bool = False,
+        failure_handler=None,
+        parser=None,
+        settle_messages: bool = True,
+    ):
+        from asbflow.consumer.result import RawConsumeResult
+
+        return RawConsumeResult()
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("sync consume should not be called by service.aconsume")
+
+    monkeypatch.setattr(consumer._strategy, "aconsume", _fake_aconsume)
+    monkeypatch.setattr(consumer._strategy, "consume", _boom)
+
+    result = asyncio.run(consumer.aconsume(parse=False, raise_on_error=False))
+
+    from asbflow.consumer.result import RawConsumeResult
+
+    assert isinstance(result, RawConsumeResult)

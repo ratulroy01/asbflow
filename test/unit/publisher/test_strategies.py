@@ -1,7 +1,8 @@
-﻿import asyncio
+import asyncio
 
 import pytest
 
+from asbflow.config.message import ASBDynamicMessageConfig, MessageFieldMapping
 from asbflow.publisher.strategies import (
     AsyncPublisherStrategy,
     SequentialPublisherStrategy,
@@ -182,3 +183,51 @@ def test_async_strategy_chunk_size_still_respects_batch_size_limit(
     assert len(factory.client.sender.sent) == 2
     assert len(factory.client.sender.sent[0].messages) == 2
     assert len(factory.client.sender.sent[1].messages) == 1
+
+
+@pytest.mark.parametrize(
+    "strategy_cls,patch_fixture",
+    [
+        (SequentialPublisherStrategy, "patch_publisher_sdk"),
+        (ThreadPoolPublisherStrategy, "patch_publisher_sdk"),
+        (AsyncPublisherStrategy, "patch_async_publisher_sdk"),
+    ],
+)
+def test_strategies_support_dynamic_message_config(
+    request,
+    strategy_cls,
+    patch_fixture,
+    base_payload,
+    connection_config,
+    publisher_config,
+):
+    payload_1 = dict(base_payload)
+    payload_1["id"] = "msg-1"
+    payload_2 = dict(base_payload)
+    payload_2["id"] = "msg-2"
+
+    patch = request.getfixturevalue(patch_fixture)
+    factory = patch()
+    strategy = strategy_cls(
+        connection=connection_config,
+        publisher=publisher_config,
+    )
+
+    dynamic_message = ASBDynamicMessageConfig(
+        message_id=MessageFieldMapping(lambda message: message["id"] if isinstance(message, dict) else None),
+    )
+
+    strategy.publish_batch([payload_1, payload_2], chunk_size=1, message=dynamic_message)
+
+    first_sent = factory.client.sender.sent[0]
+    second_sent = factory.client.sender.sent[1]
+
+    if hasattr(first_sent, "messages"):
+        first_message = first_sent.messages[0]
+        second_message = second_sent.messages[0]
+    else:
+        first_message = first_sent
+        second_message = second_sent
+
+    assert first_message.kwargs["message_id"] == "msg-1"
+    assert second_message.kwargs["message_id"] == "msg-2"

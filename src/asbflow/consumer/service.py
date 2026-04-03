@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 from asbflow.config import ASBConnectionConfig, ASBConsumerConfig, ParseFailurePolicy
 from asbflow.config.defaults import DEFAULT_MAX_MESSAGE_COUNT, get_asbflow_logger
 from asbflow.shared.parsing import PydanticModelParser
+from asbflow.shared.resolution import PropertyResolver
 
 from .base import BaseConsumerStrategy
 from .factory import ConsumeExecutionMode, ConsumerFactory
@@ -54,7 +54,7 @@ class ASBConsumer:
         """
         self._execution_mode: ConsumeExecutionMode = ConsumeExecutionMode.parse(execution_mode)
         self._failure_handler: ConsumeFailureHandler = ConsumeFailureHandler()
-        self._raise_on_error: bool = raise_on_error
+        self._raise_on_error_resolver: PropertyResolver[bool] = PropertyResolver(raise_on_error)
 
         self._strategy: BaseConsumerStrategy = strategy or ConsumerFactory.create_strategy(
             self._execution_mode,
@@ -86,10 +86,7 @@ class ASBConsumer:
     @property
     def raise_on_error(self) -> bool:
         """Return the default raise-on-error policy."""
-        return self._raise_on_error
-
-    def _resolve_raise_on_error(self, override: bool | None) -> bool:
-        return self._raise_on_error if override is None else override
+        return self._raise_on_error_resolver.default
 
     def consume(
         self,
@@ -126,7 +123,7 @@ class ASBConsumer:
         ConsumeError
             If message-level failures are collected and raise policy is enabled.
         """
-        resolved_raise_on_error: bool = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error: bool = self._raise_on_error_resolver.resolve(raise_on_error)
         LOGGER.debug(
             "Consume requested (max_message_count=%s, parse=%s, settle_messages=%s, override_parser=%s, raise_on_error=%s)",
             max_message_count,
@@ -242,7 +239,7 @@ class ASBConsumer:
         ConsumeError
             If message-level failures are collected and raise policy is enabled.
         """
-        resolved_raise_on_error = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error = self._raise_on_error_resolver.resolve(raise_on_error)
         LOGGER.info(
             "Consume-all requested (max_message_count=%s, parse=%s, override_parser=%s, raise_on_error=%s)",
             max_message_count,
@@ -321,10 +318,9 @@ class ASBConsumer:
         if not isinstance(self._strategy, AsyncConsumerStrategy):
             raise ValueError("aconsume is available only when execution_mode is 'async'")
 
-        resolved_raise_on_error: bool = self._resolve_raise_on_error(raise_on_error)
-        result: ConsumeResult = await asyncio.to_thread(
-            self._strategy.consume,
-            max_message_count,
+        resolved_raise_on_error: bool = self._raise_on_error_resolver.resolve(raise_on_error)
+        result: ConsumeResult = await self._strategy.aconsume(
+            max_message_count=max_message_count,
             parse=parse,
             failure_handler=self._failure_handler,
             parser=parser,
@@ -363,7 +359,7 @@ class ASBConsumer:
         if not isinstance(self._strategy, AsyncConsumerStrategy):
             raise ValueError("aconsume_all is available only when execution_mode is 'async'")
 
-        resolved_raise_on_error: bool = self._resolve_raise_on_error(raise_on_error)
+        resolved_raise_on_error: bool = self._raise_on_error_resolver.resolve(raise_on_error)
 
         if parse:
             parsed_messages: list[Any] = []

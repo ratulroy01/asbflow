@@ -4,6 +4,11 @@ import pytest
 
 from asbflow import ASBPublisher, PublishError, PublishExecutionMode
 from asbflow.config import ASBMessagingEntity, ASBPublisherConfig
+from asbflow.config.message import (
+    ASBDynamicMessageConfig,
+    ASBMessageConfig,
+    MessageFieldMapping,
+)
 
 
 def test_service_publish_message_and_publish_batch(
@@ -192,3 +197,57 @@ def test_service_publish_uses_queue_sender_when_configured(
     assert factory.client.sender_method == "queue"
     assert factory.client.sender_kwargs is not None
     assert factory.client.sender_kwargs["queue_name"] == "queue-a"
+
+
+def test_service_publish_message_allows_message_config_override(
+    patch_publisher_sdk,
+    base_payload,
+    connection_config,
+    publisher_config,
+    message_config,
+):
+    factory = patch_publisher_sdk()
+    publisher = ASBPublisher(
+        connection=connection_config,
+        publisher=publisher_config,
+        message=message_config,
+    )
+
+    override = ASBMessageConfig(message_id="override-id", subject="override-subject")
+    publisher.publish_message(base_payload, message=override)
+
+    sent = factory.client.sender.sent[0]
+    assert sent.kwargs["message_id"] == "override-id"
+    assert sent.kwargs["subject"] == "override-subject"
+
+
+def test_service_publish_batch_allows_dynamic_message_config(
+    patch_publisher_sdk,
+    base_payload,
+    connection_config,
+    publisher_config,
+):
+    payload_1 = dict(base_payload)
+    payload_1["id"] = "msg-1"
+    payload_2 = dict(base_payload)
+    payload_2["id"] = "msg-2"
+
+    factory = patch_publisher_sdk()
+    publisher = ASBPublisher(
+        connection=connection_config,
+        publisher=publisher_config,
+        message=ASBMessageConfig(),
+    )
+
+    dynamic_message = ASBDynamicMessageConfig(
+        message_id=MessageFieldMapping(lambda message: message["id"] if isinstance(message, dict) else None),
+        subject=MessageFieldMapping(lambda message: message["alert"]["name"] if isinstance(message, dict) else None),
+    )
+
+    publisher.publish_batch([payload_1, payload_2], chunk_size=1, message=dynamic_message)
+
+    first_batch_messages = factory.client.sender.sent[0].messages
+    second_batch_messages = factory.client.sender.sent[1].messages
+    assert first_batch_messages[0].kwargs["message_id"] == "msg-1"
+    assert second_batch_messages[0].kwargs["message_id"] == "msg-2"
+    assert first_batch_messages[0].kwargs["subject"] == "Test alert"

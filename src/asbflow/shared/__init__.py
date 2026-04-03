@@ -1,4 +1,4 @@
-﻿from asbflow.shared.asb_ops import ServiceBusPayloadOperations
+from asbflow.shared.asb_ops import ServiceBusPayloadOperations
 from asbflow.shared.message import decode_message_body
 from asbflow.shared.parsing import (
     DecodedJsonMessage,
@@ -12,6 +12,7 @@ from asbflow.shared.payloads import (
     PublishablePayload,
     PublishInput,
 )
+from asbflow.shared.resolution import PropertyResolver
 from asbflow.shared.sdk import (
     ASBAsyncClientFactory,
     ASBMessageType,
@@ -41,5 +42,6 @@ __all__ = [
     "PayloadNormalizer",
     "PublishablePayload",
     "PublishInput",
+    "PropertyResolver",
     "ServiceBusPayloadOperations",
 ]

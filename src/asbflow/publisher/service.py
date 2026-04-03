@@ -1,12 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from asbflow.config import (
     DEFAULT_CHUNK_SIZE,
     ASBConnectionConfig,
-    ASBMessageConfig,
     ASBPublisherConfig,
 )
 from asbflow.config.defaults import get_asbflow_logger
+from asbflow.config.message import MessageConfigInput
 from asbflow.exceptions import PublishError
 from asbflow.shared.parsing import PydanticModelParser
 
@@ -23,7 +23,7 @@ class ASBPublisher:
         self,
         connection: ASBConnectionConfig,
         publisher: ASBPublisherConfig,
-        message: ASBMessageConfig | None = None,
+        message: MessageConfigInput | None = None,
         execution_mode: PublishExecutionMode | str = PublishExecutionMode.SEQUENTIAL,
         parser: PydanticModelParser | None = None,
         strategy: BasePublisherStrategy | None = None,
@@ -36,7 +36,7 @@ class ASBPublisher:
             Azure Service Bus connection configuration.
         publisher : ASBPublisherConfig
             Topic sender configuration.
-        message : ASBMessageConfig | None
+        message : MessageConfigInput | None
             Optional default Service Bus message metadata.
         execution_mode : PublishExecutionMode | str
             Strategy used to send messages/batches.
@@ -66,7 +66,7 @@ class ASBPublisher:
         return self._strategy.publisher_config
 
     @property
-    def message_config(self) -> ASBMessageConfig:
+    def message_config(self) -> MessageConfigInput:
         """Return the default Service Bus message configuration."""
         return self._strategy.message_config
 
@@ -90,6 +90,7 @@ class ASBPublisher:
         *,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish a single payload.
 
@@ -101,6 +102,8 @@ class ASBPublisher:
             If ``True``, parse dictionaries before publication.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
 
         Raises
         ------
@@ -108,18 +111,20 @@ class ASBPublisher:
             If publication fails.
         """
         LOGGER.debug(
-            "Publish-message requested (parse=%s, override_parser=%s)",
+            "Publish-message requested (parse=%s, override_parser=%s, override_message=%s)",
             parse,
             parser is not None,
+            message is not None,
         )
         try:
-            self._strategy.publish_message(payload, parse=parse, parser=parser)
+            self._strategy.publish_message(payload, parse=parse, parser=parser, message=message)
             LOGGER.info("Publish-message completed")
         except Exception as exc:
             LOGGER.exception(
-                "Publish-message failed (parse=%s, override_parser=%s)",
+                "Publish-message failed (parse=%s, override_parser=%s, override_message=%s)",
                 parse,
                 parser is not None,
+                message is not None,
             )
             self._raise_publish_error(operation="publish_message", error=exc)
 
@@ -128,6 +133,7 @@ class ASBPublisher:
         payload: PublishablePayload,
         *,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish a single payload with parsing enabled.
 
@@ -137,11 +143,14 @@ class ASBPublisher:
             Payload dictionary or pydantic model.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
         """
         self.publish_message(
             payload,
             parse=True,
             parser=parser,
+            message=message,
         )
 
     def publish_batch(
@@ -151,6 +160,7 @@ class ASBPublisher:
         chunk_size: int | None = DEFAULT_CHUNK_SIZE,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish a batch of payloads.
 
@@ -164,6 +174,8 @@ class ASBPublisher:
             If ``True``, parse dictionaries before publication.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
 
         Raises
         ------
@@ -171,11 +183,12 @@ class ASBPublisher:
             If publication fails.
         """
         LOGGER.info(
-            "Publish-batch requested (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s)",
+            "Publish-batch requested (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s, override_message=%s)",
             len(payloads),
             chunk_size,
             parse,
             parser is not None,
+            message is not None,
         )
         try:
             self._strategy.publish_batch(
@@ -183,6 +196,7 @@ class ASBPublisher:
                 chunk_size=chunk_size,
                 parse=parse,
                 parser=parser,
+                message=message,
             )
             LOGGER.info(
                 "Publish-batch completed (payload_count=%s)",
@@ -190,11 +204,12 @@ class ASBPublisher:
             )
         except Exception as exc:
             LOGGER.exception(
-                "Publish-batch failed (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s)",
+                "Publish-batch failed (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s, override_message=%s)",
                 len(payloads),
                 chunk_size,
                 parse,
                 parser is not None,
+                message is not None,
             )
             self._raise_publish_error(operation="publish_batch", error=exc)
 
@@ -204,6 +219,7 @@ class ASBPublisher:
         *,
         chunk_size: int | None = DEFAULT_CHUNK_SIZE,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish a batch of payloads with parsing enabled.
 
@@ -215,12 +231,15 @@ class ASBPublisher:
             Optional maximum items per chunk before SDK batch packing.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
         """
         self.publish_batch(
             payloads,
             chunk_size=chunk_size,
             parse=True,
             parser=parser,
+            message=message,
         )
 
     def publish(
@@ -230,6 +249,7 @@ class ASBPublisher:
         chunk_size: int | None = DEFAULT_CHUNK_SIZE,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish one payload or a list of payloads.
 
@@ -243,6 +263,8 @@ class ASBPublisher:
             If ``True``, parse dictionaries before publication.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
 
         Raises
         ------
@@ -251,11 +273,12 @@ class ASBPublisher:
         """
         payload_count = len(payload) if isinstance(payload, list) else 1
         LOGGER.info(
-            "Publish requested (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s)",
+            "Publish requested (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s, override_message=%s)",
             payload_count,
             chunk_size,
             parse,
             parser is not None,
+            message is not None,
         )
         try:
             self._strategy.publish(
@@ -263,15 +286,17 @@ class ASBPublisher:
                 chunk_size=chunk_size,
                 parse=parse,
                 parser=parser,
+                message=message,
             )
             LOGGER.info("Publish completed (payload_count=%s)", payload_count)
         except Exception as exc:
             LOGGER.exception(
-                "Publish failed (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s)",
+                "Publish failed (payload_count=%s, chunk_size=%s, parse=%s, override_parser=%s, override_message=%s)",
                 payload_count,
                 chunk_size,
                 parse,
                 parser is not None,
+                message is not None,
             )
             self._raise_publish_error(operation="publish", error=exc)
 
@@ -281,6 +306,7 @@ class ASBPublisher:
         *,
         chunk_size: int | None = DEFAULT_CHUNK_SIZE,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         """Publish one payload or a list of payloads with parsing enabled.
 
@@ -292,12 +318,15 @@ class ASBPublisher:
             Optional maximum items per chunk for batch publication.
         parser : PydanticModelParser | None
             Optional parser overriding the service default for this call.
+        message : MessageConfigInput | None
+            Optional message-config override for this call.
         """
         self.publish(
             payload,
             chunk_size=chunk_size,
             parse=True,
             parser=parser,
+            message=message,
         )
 
 

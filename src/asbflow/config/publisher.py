@@ -1,7 +1,6 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
 from typing import Any
 
 from asbflow.config.entity import ASBMessagingEntity
@@ -62,30 +61,4 @@ class ASBPublisherConfig:
         return kwargs
 
 
-@dataclass(frozen=True, slots=True)
-class ASBMessageConfig:
-    content_type: str | None = "application/json"
-    message_id: str | None = None
-    correlation_id: str | None = None
-    subject: str | None = None
-    partition_key: str | None = None
-    session_id: str | None = None
-    time_to_live: timedelta | None = None
-    scheduled_enqueue_time_utc: datetime | None = None
-    to: str | None = None
-    reply_to: str | None = None
-    reply_to_session_id: str | None = None
-    application_properties: dict[str, Any] | None = None
-    message_kwargs: dict[str, Any] = field(default_factory=dict)
-
-    def to_message_kwargs(self) -> dict[str, Any]:
-        source: dict[str, Any] = asdict(self)
-
-        extra_kwargs: dict[str, Any] = source.pop("message_kwargs")
-
-        kwargs: dict[str, Any] = {k: v for k, v in source.items() if v is not None}
-        kwargs.update(extra_kwargs)
-        return kwargs
-
-
-__all__ = ["ASBPublisherConfig", "ASBMessageConfig"]
+__all__ = ["ASBPublisherConfig"]

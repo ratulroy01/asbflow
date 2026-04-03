@@ -1,9 +1,23 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [1.0.2] - 2026-04-03
+
+### Added
+- Dynamic message metadata support via `ASBDynamicMessageConfig` and `MessageFieldMapping`.
+- New message-config module (`asbflow.config.message`) containing message metadata models and aliases.
+
+### Changed
+- `ASBPublisher.publish*` methods now accept per-call `message` overrides.
+- Strategy-specific message-config builders now resolve concrete `ASBMessageConfig` per payload.
+- `ASBConsumer.aconsume` now directly invokes async strategy `aconsume` (no thread wrapper).
+- Shared override resolution utility (`PropertyResolver`) is used consistently in publisher, consumer and DLQ paths.
+
+### Fixed
+- Publisher strategy constructor typing now uses explicit typed optional dependencies, removing static type-checking errors from untyped `**kwargs`.
 ## [1.0.1] - 2026-04-01
 
 ### Changed

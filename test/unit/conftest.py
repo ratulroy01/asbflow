@@ -13,9 +13,9 @@ from pydantic import BaseModel
 from asbflow.config import (
     ASBConnectionConfig,
     ASBConsumerConfig,
-    ASBMessageConfig,
     ASBPublisherConfig,
 )
+from asbflow.config.message import ASBMessageConfig
 from asbflow.shared.parsing import PydanticModelParser
 
 

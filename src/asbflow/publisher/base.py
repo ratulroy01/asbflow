@@ -1,11 +1,13 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any
 
 from asbflow.auth import ASBClientProvider, ASBClientProviderFactory
-from asbflow.config import ASBConnectionConfig, ASBMessageConfig, ASBPublisherConfig
+from asbflow.config import ASBConnectionConfig, ASBPublisherConfig
+from asbflow.config.message import ASBMessageConfig, MessageConfigInput
 from asbflow.entity import ASBEntityClient, ASBEntityClientFactory
+from asbflow.publisher.message_config_builder import MessageConfigBuilder
 from asbflow.shared.asb_ops import ServiceBusPayloadOperations
 from asbflow.shared.parsing import PydanticModelParser
 from asbflow.shared.payloads import (
@@ -22,7 +24,7 @@ class BasePublisherStrategy(ABC):
         self,
         connection: ASBConnectionConfig,
         publisher: ASBPublisherConfig,
-        message: ASBMessageConfig | None = None,
+        message: MessageConfigInput | None = None,
         parser: PydanticModelParser | None = None,
         payload_normalizer: PayloadNormalizer | None = None,
         asb_operations: ServiceBusPayloadOperations | None = None,
@@ -31,11 +33,11 @@ class BasePublisherStrategy(ABC):
     ) -> None:
         self._connection: ASBConnectionConfig = connection
         self._publisher: ASBPublisherConfig = publisher
-        self._message: ASBMessageConfig = message or ASBMessageConfig()
         self._payload_normalizer: PayloadNormalizer = payload_normalizer or PayloadNormalizer(parser)
         self._asb_operations: ServiceBusPayloadOperations = asb_operations or ServiceBusPayloadOperations()
         self._client_provider: ASBClientProvider = client_provider or ASBClientProviderFactory.create(connection)
         self._entity_client: ASBEntityClient = entity_client or ASBEntityClientFactory.create_for_publisher(publisher)
+        self._message_config_builder: MessageConfigBuilder = MessageConfigBuilder(message)
 
     @property
     def connection_config(self) -> ASBConnectionConfig:
@@ -46,8 +48,8 @@ class BasePublisherStrategy(ABC):
         return self._publisher
 
     @property
-    def message_config(self) -> ASBMessageConfig:
-        return self._message
+    def message_config(self) -> MessageConfigInput:
+        return self._message_config_builder.default
 
     @property
     def parser(self) -> PydanticModelParser | None:
@@ -63,6 +65,7 @@ class BasePublisherStrategy(ABC):
         *,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         normalized_payload = self._payload_normalizer.normalize_payload(
             payload,
@@ -70,13 +73,14 @@ class BasePublisherStrategy(ABC):
             parser=parser,
         )
         payload_json: str = self._asb_operations.payload_to_json(normalized_payload)
+        resolved_message_config: ASBMessageConfig = self._message_config_builder.build(normalized_payload, message)
 
         servicebus_message: ASBMessageType = load_asb_message_type()
         with self._client_provider.create_sync_client() as client:
             with self._entity_client.get_sync_sender(client, self._publisher) as sender:
                 message_object: Any = servicebus_message(
                     payload_json,
-                    **self._message.to_message_kwargs(),
+                    **resolved_message_config.to_message_kwargs(),
                 )
                 sender.send_messages(message_object)
 
@@ -88,6 +92,7 @@ class BasePublisherStrategy(ABC):
         chunk_size: int | None = None,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         raise NotImplementedError
 
@@ -98,6 +103,7 @@ class BasePublisherStrategy(ABC):
         chunk_size: int | None = None,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None:
         if self._is_batch_payload(payload):
             assert isinstance(payload, list)
@@ -106,11 +112,12 @@ class BasePublisherStrategy(ABC):
                 chunk_size=chunk_size,
                 parse=parse,
                 parser=parser,
+                message=message,
             )
             return
 
         assert not isinstance(payload, list)
-        self.publish_message(payload, parse=parse, parser=parser)
+        self.publish_message(payload, parse=parse, parser=parser, message=message)
 
     @staticmethod
     def _is_batch_payload(payload: PublishInput) -> bool:
@@ -127,17 +134,20 @@ class BasePublisherStrategy(ABC):
         servicebus_message: Any,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> list[object]:
         normalized_payloads: list[PublishablePayload] = self._payload_normalizer.normalize_payloads(
             payloads,
             parse=parse,
             parser=parser,
         )
-        return self._asb_operations.build_messages(
-            normalized_payloads,
-            servicebus_message=servicebus_message,
-            message_kwargs=self._message.to_message_kwargs(),
-        )
+        return [
+            servicebus_message(
+                self._asb_operations.payload_to_json(payload),
+                **self._message_config_builder.build(payload, message).to_message_kwargs(),
+            )
+            for payload in normalized_payloads
+        ]
 
     def _build_sync_batches(
         self,

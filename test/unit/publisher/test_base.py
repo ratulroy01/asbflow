@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from asbflow.publisher.base import BasePublisherStrategy
 
@@ -8,7 +8,7 @@ class DummyPublisherStrategy(BasePublisherStrategy):
         super().__init__(*args, **kwargs)
         self.batch_calls: list[tuple[int, int | None]] = []
 
-    def publish_batch(self, payloads, *, chunk_size=None, parse=False, parser=None) -> None:
+    def publish_batch(self, payloads, *, chunk_size=None, parse=False, parser=None, message=None) -> None:
         self.batch_calls.append((len(payloads), chunk_size))
 
 

@@ -1,12 +1,14 @@
-﻿from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError, version
 
 from asbflow.config import (
     ASBAuthMethod,
     ASBConnectionConfig,
     ASBConsumerConfig,
+    ASBDynamicMessageConfig,
     ASBMessageConfig,
     ASBMessagingEntity,
     ASBPublisherConfig,
+    MessageFieldMapping,
     ParseFailurePolicy,
 )
 from asbflow.consumer import (
@@ -50,6 +52,8 @@ __all__ = [
     "ParseFailurePolicy",
     "ASBAuthMethod",
     "ASBMessageConfig",
+    "ASBDynamicMessageConfig",
+    "MessageFieldMapping",
     "ASBPublisher",
     "create_publisher",
     "PublishExecutionMode",

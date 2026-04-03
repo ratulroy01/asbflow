@@ -1,7 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from asbflow.config.message import MessageConfigInput
 from asbflow.consumer.result import ConsumeResult
 from asbflow.shared.parsing import PydanticModelParser
 from asbflow.shared.payloads import PublishInput
@@ -38,6 +39,7 @@ class _PublisherLike(Protocol):
         chunk_size: int | None = None,
         parse: bool = False,
         parser: PydanticModelParser | None = None,
+        message: MessageConfigInput | None = None,
     ) -> None: ...
 
 

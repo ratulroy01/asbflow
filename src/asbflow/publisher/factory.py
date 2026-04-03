@@ -1,11 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from enum import Enum
 from typing import TYPE_CHECKING
 
 from asbflow.auth import ASBClientProviderFactory
 from asbflow.auth.base import ASBClientProvider
-from asbflow.config import ASBConnectionConfig, ASBMessageConfig, ASBPublisherConfig
+from asbflow.config import ASBConnectionConfig, ASBPublisherConfig
+from asbflow.config.message import MessageConfigInput
 from asbflow.shared.parsing import PydanticModelParser
 
 from .base import BasePublisherStrategy
@@ -59,7 +60,7 @@ class PublisherFactory:
         *,
         connection: ASBConnectionConfig,
         publisher: ASBPublisherConfig,
-        message: ASBMessageConfig | None = None,
+        message: MessageConfigInput | None = None,
         parser: PydanticModelParser | None = None,
     ) -> BasePublisherStrategy:
         parsed_mode: PublishExecutionMode = PublishExecutionMode.parse(mode)
@@ -98,7 +99,7 @@ class PublisherFactory:
         connection: ASBConnectionConfig,
         publisher: ASBPublisherConfig,
         *,
-        message: ASBMessageConfig | None = None,
+        message: MessageConfigInput | None = None,
         execution_mode: PublishExecutionMode | str = PublishExecutionMode.SEQUENTIAL,
         parser: PydanticModelParser | None = None,
     ) -> ASBPublisher:
@@ -125,7 +126,7 @@ def create_publisher(
     connection: ASBConnectionConfig,
     publisher: ASBPublisherConfig,
     *,
-    message: ASBMessageConfig | None = None,
+    message: MessageConfigInput | None = None,
     execution_mode: PublishExecutionMode | str = PublishExecutionMode.SEQUENTIAL,
     parser: PydanticModelParser | None = None,
 ) -> ASBPublisher:

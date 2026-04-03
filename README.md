@@ -81,7 +81,43 @@ result = consumer.consume(parse=False, raise_on_error=False)
 print(result.succeeded, result.failed)
 ```
 
+## Message Config (New in 1.0.2)
+
+You can now override message metadata per publish call, and you can derive metadata dynamically from each payload.
+
+```python
+from asbflow import ASBMessageConfig, ASBDynamicMessageConfig, MessageFieldMapping
+
+# static per-call override
+publisher.publish(
+    payload={"id": "a1", "severity": "high"},
+    message=ASBMessageConfig(message_id="fixed-id", subject="alerts"),
+)
+
+# dynamic per-payload metadata
+dynamic_message = ASBDynamicMessageConfig(
+    message_id=MessageFieldMapping(lambda payload: payload["id"] if isinstance(payload, dict) else None),
+    subject=MessageFieldMapping(lambda payload: payload["severity"] if isinstance(payload, dict) else None),
+)
+
+publisher.publish(
+    payload=[
+        {"id": "a1", "severity": "high"},
+        {"id": "a2", "severity": "critical"},
+    ],
+    chunk_size=1,
+    message=dynamic_message,
+)
+```
+
 A richer walkthrough is available in [`quickstart/`](quickstart/README.md), including [`quickstart/asbflow_quickstart.ipynb`](quickstart/asbflow_quickstart.ipynb).
+
+## Public API Snapshot
+
+- `ASBMessageConfig`: concrete Service Bus message metadata.
+- `ASBDynamicMessageConfig`: payload-driven message metadata template.
+- `MessageFieldMapping`: extractor wrapper used by dynamic message config fields.
+- `MessageConfigInput`: alias of `ASBMessageConfig | ASBDynamicMessageConfig` (in `asbflow.config.message`).
 
 ## Design Principles
 
