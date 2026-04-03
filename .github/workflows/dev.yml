@@ -3,8 +3,18 @@ name: Dev CI
 on:
   push:
     branches: ["dev"]
+    paths:
+      - "src/**"
+      - "test/**"
+      - "pyproject.toml"
+      - ".github/workflows/dev.yml"
   pull_request:
     branches: ["dev"]
+    paths:
+      - "src/**"
+      - "test/**"
+      - "pyproject.toml"
+      - ".github/workflows/dev.yml"
 
 jobs:
   validate:

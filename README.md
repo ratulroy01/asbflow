@@ -149,9 +149,7 @@ The repository ships with branch-oriented GitHub Actions:
 
 ## Roadmap
 
-- More built-in payload parser adapters.
-- Additional reliability patterns around retries/backoff.
-- Optional observability integrations (metrics/tracing).
+The active roadmap and release follow-ups are tracked in [TODO.md](TODO.md).
 
 ## License
 

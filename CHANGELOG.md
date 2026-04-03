@@ -18,6 +18,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Fixed
 - Publisher strategy constructor typing now uses explicit typed optional dependencies, removing static type-checking errors from untyped `**kwargs`.
+
 ## [1.0.1] - 2026-04-01
 
 ### Changed

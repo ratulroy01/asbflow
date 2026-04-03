@@ -3,8 +3,18 @@ name: Main CI
 on:
   push:
     branches: ["main"]
+    paths:
+      - "src/**"
+      - "test/**"
+      - "pyproject.toml"
+      - ".github/workflows/main.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "src/**"
+      - "test/**"
+      - "pyproject.toml"
+      - ".github/workflows/main.yml"
 
 jobs:
   quality:
