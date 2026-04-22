@@ -81,7 +81,7 @@ result = consumer.consume(parse=False, raise_on_error=False)
 print(result.succeeded, result.failed)
 ```
 
-## Message Config (New in 1.0.2)
+## Message Config
 
 You can now override message metadata per publish call, and you can derive metadata dynamically from each payload.
 

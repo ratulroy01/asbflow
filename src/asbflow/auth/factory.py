@@ -2,7 +2,9 @@
 
 from asbflow.auth.base import ASBClientProvider
 from asbflow.auth.providers import (
+    ClientSecretCredentialClientProvider,
     ConnectionStringClientProvider,
+    DefaultAzureCredentialClientProvider,
     ManagedIdentityClientProvider,
 )
 from asbflow.config.connection import ASBAuthMethod, ASBConnectionConfig
@@ -33,8 +35,12 @@ class ASBClientProviderFactory:
         match config.auth:
             case ASBAuthMethod.CONNECTION_STRING:
                 return ConnectionStringClientProvider(config)
+            case ASBAuthMethod.CLIENT_SECRET_CREDENTIAL:
+                return ClientSecretCredentialClientProvider(config)
             case ASBAuthMethod.MANAGED_IDENTITY:
                 return ManagedIdentityClientProvider(config)
+            case ASBAuthMethod.DEFAULT_AZURE_CREDENTIAL:
+                return DefaultAzureCredentialClientProvider(config)
 
         raise ValueError(f"Unsupported Service Bus auth method: {config.auth}")
 

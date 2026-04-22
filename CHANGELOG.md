@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [1.0.3] - 2026-04-22
+
+### Added
+- Added `DefaultAzureCredentialClientProvider` and `ClientSecretCredentialClientProvider`.
+- Added `default_azure_credential` and `client_secret_credential` in `ASBAuthMethod`.
+
+### Changed
+- `ASBClientProviderFactory` now resolves providers for all supported auth methods.
+- `ASBConnectionConfig` now supports shared token-credential kwargs generation and client-secret credential kwargs generation.
+- `ASBConnectionConfig` now standardizes on `client_id`; legacy `managed_identity_client_id` is still accepted at init-time for backward compatibility and mapped in `__post_init__`.
+
 ## [1.0.2] - 2026-04-03
 
 ### Added
